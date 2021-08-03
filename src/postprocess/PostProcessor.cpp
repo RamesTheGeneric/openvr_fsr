@@ -224,9 +224,11 @@ namespace vr {
 		UpscaleConstants constants;
 		// create shader constants buffers
 		FsrEasuCon(constants.const0, constants.const1, constants.const2, constants.const3, inputWidth, inputHeight, inputWidth, inputHeight, outputWidth, outputHeight);
+		int TwoEyeOffset = outputWidth / (3 + Config::Instance().center_display);
+		int OneEyeOffset = outputWidth / (2 - Config::Instance().center_display);
 		constants.imageCentre[1] = constants.imageCentre[3] = outputHeight / 2;
-		constants.imageCentre[0] = textureContainsOnlyOneEye ? outputWidth / 2 : outputWidth / 4;
-		constants.imageCentre[2] = textureContainsOnlyOneEye ? outputWidth / 2 : 3 * outputWidth / 4;
+		constants.imageCentre[0] = textureContainsOnlyOneEye ? OneEyeOffset : TwoEyeOffset;
+		constants.imageCentre[2] = textureContainsOnlyOneEye ? outputWidth - OneEyeOffset : outputWidth - TwoEyeOffset;
 		constants.radius[0] = 0.5f * Config::Instance().radius * outputHeight;
 		constants.radius[1] = constants.radius[0] * constants.radius[0];
 		constants.radius[2] = outputWidth;
@@ -242,6 +244,7 @@ namespace vr {
 		init.SysMemPitch = 0;
 		init.SysMemSlicePitch = 0;
 		init.pSysMem = &constants;
+		Log() << "textureContainsOnlyOneEye: " << textureContainsOnlyOneEye << "\n";
 		CheckResult("Creating FSR constants buffer", device->CreateBuffer( &bd, &init, upscaleConstantsBuffer.GetAddressOf()));
 
 		Log() << "Creating upscaled texture of size " << outputWidth << "x" << outputHeight << "\n";
@@ -294,10 +297,12 @@ namespace vr {
 		SharpenConstants constants;
 		float sharpness = AClampF1( Config::Instance().sharpness, 0, 1 );
 		FsrRcasCon(constants.const0, 2.f - 2*sharpness);
+		int TwoEyeOffset = outputWidth / (3 + Config::Instance().center_display);
+		int OneEyeOffset = outputWidth / (2 - Config::Instance().center_display);
 		constants.imageCentre[1] = constants.imageCentre[3] = outputHeight / 2;
-		constants.imageCentre[0] = textureContainsOnlyOneEye ? outputWidth / 2 : outputWidth / 4;
-		constants.imageCentre[2] = textureContainsOnlyOneEye ? outputWidth / 2 : 3 * outputWidth / 4;
-		constants.radius[0] = 0.5f * Config::Instance().radius * outputHeight;
+		constants.imageCentre[0] = textureContainsOnlyOneEye ? OneEyeOffset : TwoEyeOffset;
+		constants.imageCentre[2] = textureContainsOnlyOneEye ? outputWidth - OneEyeOffset : outputWidth - TwoEyeOffset;
+		constants.radius[0] = 0.5f * Config::Instance().sharpening_radius * outputHeight;
 		constants.radius[1] = constants.radius[0] * constants.radius[0];
 		constants.radius[2] = outputWidth;
 		constants.radius[3] = outputHeight;
